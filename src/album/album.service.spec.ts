@@ -41,6 +41,41 @@ describe('AlbumService', () => {
    expect(service).toBeDefined();
  });
 
- 
+ it('create should return a new album', async () => {
+  const album: AlbumEntity = {
+    id: "",
+    nombre: faker.company.name(),
+    caratula: faker.lorem.paragraph(),
+    fecha: faker.date.past(),
+    descripcion: faker.lorem.paragraph(),
+    tracks: [],
+    performers: []
+  }
+
+  const newAlbum: AlbumEntity = await service.create(album);
+  expect(newAlbum).not.toBeNull();
+
+  const storedAlbum: AlbumEntity = await repository.findOne({where: {id: newAlbum.id}})
+  expect(storedAlbum).not.toBeNull();
+  expect(album).not.toBeNull();
+  expect(album.nombre).toEqual(storedAlbum.nombre);
+  expect(album.caratula).toEqual(storedAlbum.caratula);
+  expect(album.fecha).toEqual(storedAlbum.fecha);
+  expect(album.descripcion).toEqual(storedAlbum.descripcion);
+
+});
+
+it('create should throw an exception for an invalid album', async () => {
+  const album: AlbumEntity = {
+    id: "",
+    nombre: faker.company.name(),
+    caratula: faker.lorem.paragraph(),
+    fecha: faker.date.past(),
+    descripcion: "",
+    tracks: [],
+    performers: []
+  }
+  const newAlbum: AlbumEntity = await service.create(album);
+});
 
 });
