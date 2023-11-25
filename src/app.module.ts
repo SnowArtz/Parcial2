@@ -4,12 +4,11 @@ import { AppService } from './app.service';
 import { AlbumModule } from './album/album.module';
 import { TrackModule } from './track/track.module';
 import { PerformerModule } from './performer/performer.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlbumEntity } from './album/album.entity';
 import { TrackEntity } from './track/track.entity';
 import { PerformerEntity } from './performer/performer.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PerformerAlbumModule } from './performer-album/performer-album.module';
-
+import { AlbumPerformerModule } from './album-performer/album-performer.module';
 
 @Module({
   imports: [AlbumModule, TrackModule, PerformerModule, TypeOrmModule.forRoot({
@@ -23,7 +22,7 @@ import { PerformerAlbumModule } from './performer-album/performer-album.module';
     dropSchema: true,
     synchronize: true,
     keepConnectionAlive: true
-  }), PerformerAlbumModule,],
+  }), AlbumPerformerModule],
   controllers: [AppController],
   providers: [AppService],
 })

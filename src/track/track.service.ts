@@ -2,44 +2,61 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TrackEntity } from './track.entity';
-import { BusinessError, BusinessLogicException } from '../shared/errors/business-errors';
-import { AlbumEntity } from 'src/album/album.entity';
+import { AlbumService } from '../album/album.service';
 
+import {
+  BusinessLogicException,
+  BusinessError,
+} from '../shared/errors/business-errors';
 
+/**
+ * Cree la clase correspondiente para la lógica de Track. Implemente los métodos create(albumId, track), findOne(), findAll(). Valide que la duración del track sea un numero positivo. No se puede crear un track si el álbum al que se va a asociar no existe. 
+ */
 
 @Injectable()
-export class TracksService {
+export class TrackService {
   constructor(
     @InjectRepository(TrackEntity)
-    private _trackRepository: Repository<TrackEntity>,
-    @InjectRepository(AlbumEntity)
-    private _albumRepository: Repository<AlbumEntity>
+    private readonly _trackRepository: Repository<TrackEntity>,
+
+    private readonly _albumService: AlbumService,
   ) {}
 
-    async findOne(id: string): Promise<TrackEntity> {
-        const track = await this._trackRepository.findOne({ where: { id } });
-        if (!track) {
-        throw new BusinessLogicException('No se encontró el track con id dado', BusinessError.NOT_FOUND);
-        }
-        return track;
-    }
-
-    async findAll(): Promise<TrackEntity[]> {
-        return await this._trackRepository.find();
-    }
-
-  async create(id: string, tracker: TrackEntity): Promise<TrackEntity> {
-    const album = await this._albumRepository.findOne({where: {id}, relations: ['tracks', 'performers']});
+  async create(track: TrackEntity): Promise<TrackEntity> {
+    const album = await this._albumService.findOne(track.album.id);
     if (!album) {
-        throw new BusinessLogicException(`No se encontró el album con id dado`, BusinessError.NOT_FOUND);
+      throw new BusinessLogicException(
+        `No se puede crear un track para un álbum que no existe`,
+        BusinessError.PRECONDITION_FAILED,
+      );
     }
-    const trackCreated = this._trackRepository.create(tracker);
+    const trackCreated = this._trackRepository.create(track);
     if (trackCreated.duracion <= 0) {
-        throw new BusinessLogicException(`La duración debe ser positiva`, BusinessError.BAD_REQUEST);
+      throw new BusinessLogicException(
+        `La duración del track debe ser un número positivo`,
+        BusinessError.BAD_REQUEST,
+      );
     }
+    trackCreated.album = album;
     const trackSaved = await this._trackRepository.save(trackCreated);
     return trackSaved;
   }
 
-}
+  async findOne(id: string): Promise<TrackEntity> {
+    const track = await this._trackRepository.findOne({
+      where: { id },
+      relations: ['album'],
+    });
+    if (!track) {
+      throw new BusinessLogicException(
+        `No se encontró el track con id dado`,
+        BusinessError.NOT_FOUND,
+      );
+    }
+    return track;
+  }
 
+  async findAll(): Promise<TrackEntity[]> {
+    return await this._trackRepository.find({ relations: ['album'] });
+  }
+}

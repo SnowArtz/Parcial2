@@ -1,7 +1,7 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AlbumEntity } from 'src/album/album.entity';
-import { PerformerEntity } from 'src/performer/performer.entity';
-import { TrackEntity } from 'src/track/track.entity';
+import { AlbumEntity } from '../../album/album.entity';
+import { PerformerEntity } from '../../performer/performer.entity';
+import { TrackEntity } from '../../track/track.entity';
 
 
 export const TypeOrmTestingConfig = () => [
